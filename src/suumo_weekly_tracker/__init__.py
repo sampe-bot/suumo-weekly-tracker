@@ -1,0 +1,1 @@
+"""SUUMO Weekly Tracker package."""

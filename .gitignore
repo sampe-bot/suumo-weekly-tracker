@@ -1,0 +1,19 @@
+# Python / uv
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# Environment & Secrets
+.env
+service_account.json
+*.json
+!pyproject.json
+
+# Logs & OS
+*.log
+.DS_Store
