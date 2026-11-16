@@ -1,6 +1,6 @@
 # suumo-weekly-tracker
 
-指定した検索条件に合う物件をSUUMOから週次でクロールし、同一住戸の名寄せ・坪単価/平米単価の算出・前回差分検知を行ったうえで、Googleスプレッドシートの更新とSlackへのサマリー通知を自動実行するツールです。
+指定した検索条件に合う物件をSUUMOから毎日クロールし、同一住戸の名寄せ・坪単価/平米単価の算出・前回差分検知を行ったうえで、Googleスプレッドシートの更新とSlackへのサマリー通知を自動実行するツールです。
 
 ## ディレクトリ構成
 
@@ -15,7 +15,7 @@ suumo-weekly-tracker/
 │       ├── __init__.py
 │       └── main.py                             # クローリング・集計・シート更新・Slack通知本体
 └── templates/
-    └── com.user.suumo-tracker.plist.example    # macOS launchd 週次実行用テンプレート
+    └── com.user.suumo-tracker.plist.example    # macOS launchd 日次実行用テンプレート
 ```
 
 ## セットアップ手順
@@ -54,9 +54,9 @@ uv run suumo-tracker
 
 実行後、スプレッドシートに `Summary_Ranking` と `Raw_History` の2つのタブが生成され、Slackにレポートが通知されることを確認してください。
 
-## 週次自動実行の設定（macOS `launchd`）
+## 日次自動実行の設定（macOS `launchd`）
 
-自宅ネットワークから毎週日曜 8:00 に自動実行する場合、`templates/com.user.suumo-tracker.plist.example` のパスを環境に合わせて書き換え、`~/Library/LaunchAgents/` に配置してロードします。
+自宅ネットワークから毎日 8:00（Macのローカル時刻）に自動実行する場合、`templates/com.user.suumo-tracker.plist.example` のパスを環境に合わせて書き換え、`~/Library/LaunchAgents/` に配置してロードします。Macへのログインが必要です。実行時刻にスリープしていた場合は、復帰後に実行されます。
 
 ```bash
 cp templates/com.user.suumo-tracker.plist.example ~/Library/LaunchAgents/com.user.suumo-tracker.plist

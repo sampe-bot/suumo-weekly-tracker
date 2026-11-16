@@ -329,7 +329,7 @@ def sync_with_spreadsheet(today_str: str, raw_items: List[Dict[str, Any]]) -> Di
 # 5. Slack通知処理
 # ==========================================
 def send_slack_notification(today_str: str, total_raw: int, result: Dict[str, Any]) -> None:
-    """Slack Incoming Webhookで週次サマリーを送信"""
+    """Slack Incoming Webhookで日次サマリーを送信"""
     if not SLACK_WEBHOOK_URL:
         print("SLACK_WEBHOOK_URL が未設定のためSlack通知をスキップします。")
         return
@@ -340,11 +340,11 @@ def send_slack_notification(today_str: str, total_raw: int, result: Dict[str, An
     top5_items = items[:5]
 
     lines = [
-        f"*🏠 仙台市 中古マンション週次レポート ({today_str})*",
+        f"*🏠 仙台市 中古マンション日次レポート ({today_str})*",
         f"該当：{len(items)}棟/室（延べ掲載 {total_raw}枠 / 80㎡以上・徒歩10分以内・築15年以内）\n",
     ]
 
-    lines.append(f"*🆕 今週の新着物件 ({len(new_items)}件)*")
+    lines.append(f"*🆕 前回更新からの新着物件 ({len(new_items)}件)*")
     if new_items:
         for x in new_items[:5]:
             lines.append(
@@ -356,7 +356,7 @@ def send_slack_notification(today_str: str, total_raw: int, result: Dict[str, An
     else:
         lines.append("• なし")
 
-    lines.append(f"\n*📉 今週の値下げ物件 ({len(down_items)}件)*")
+    lines.append(f"\n*📉 前回更新からの値下げ物件 ({len(down_items)}件)*")
     if down_items:
         for x in down_items[:5]:
             old_p = x["price_man"] - x["price_diff"]
@@ -380,7 +380,9 @@ def send_slack_notification(today_str: str, total_raw: int, result: Dict[str, An
     )
 
     payload = {"text": "\n".join(lines)}
-    httpx.post(SLACK_WEBHOOK_URL, json=payload, timeout=10.0).raise_for_status()
+    transport = httpx.HTTPTransport(local_address="0.0.0.0")
+    with httpx.Client(transport=transport, timeout=30.0) as client:
+        client.post(SLACK_WEBHOOK_URL, json=payload).raise_for_status()
 
 
 def main() -> None:
@@ -402,13 +404,14 @@ def main() -> None:
     except Exception as e:
         if SLACK_WEBHOOK_URL:
             try:
-                httpx.post(
-                    SLACK_WEBHOOK_URL,
-                    json={
-                        "text": f"⚠️ *SUUMO週次クローラー エラー発生 ({today_str})*\n```{e}```"
-                    },
-                    timeout=10.0,
-                )
+                transport = httpx.HTTPTransport(local_address="0.0.0.0")
+                with httpx.Client(transport=transport, timeout=30.0) as client:
+                    client.post(
+                        SLACK_WEBHOOK_URL,
+                        json={
+                            "text": f"⚠️ *SUUMO日次クローラー エラー発生 ({today_str})*\n```{e}```"
+                        },
+                    )
             except Exception:
                 pass
         raise
