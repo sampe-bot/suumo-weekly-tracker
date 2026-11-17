@@ -96,7 +96,6 @@ def fetch_all_properties(base_url: str) -> List[Dict[str, Any]]:
                 title_el = unit.select_one("h2.property_unit-title a")
                 if not title_el:
                     continue
-                name = normalize_text(title_el.text)
                 href = title_el.get("href", "")
                 detail_url = f"https://suumo.jp{href}" if href.startswith("/") else href
 
@@ -106,6 +105,9 @@ def fetch_all_properties(base_url: str) -> List[Dict[str, Any]]:
                     dd = dl.select_one("dd")
                     if dt and dd:
                         info_map[normalize_text(dt.text)] = normalize_text(dd.text)
+
+                # 広告文を含む見出しより、SUUMOの「物件名」欄を優先する。
+                name = info_map.get("物件名") or normalize_text(title_el.text)
 
                 price_man = parse_price_man(info_map.get("販売価格", ""))
                 area_m2 = parse_area(info_map.get("専有面積", ""))
